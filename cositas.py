@@ -2,26 +2,19 @@ import streamlit as st
 import pandas as pd
 
 def calcular_periodo_estimado(metodo, m):
-    if m <= 0:
-        return 0
-    if metodo == "Mixto":
-        return m
-    elif metodo == "Multiplicativo Binario":
-        return m // 4
-    elif metodo == "Multiplicativo Decimal":
-        return m // 20 if m >= 20 else "Variable"
+    if m <= 0: return 0
+    if metodo == "Mixto": return m
+    if metodo == "Multiplicativo Binario": return m // 4
+    if metodo == "Multiplicativo Decimal": return m // 20 if m >= 20 else "Variable"
     return "Desconocido"
 
-# Configuración de la página web
 st.set_page_config(page_title="Generadores Aleatorios", layout="wide")
 st.title("Generadores de Números Pseudoaleatorios")
 
 st.markdown("### Configuración del Generador")
 
-# Selector de método
 metodo = st.selectbox("Método:", ["Mixto", "Multiplicativo Binario", "Multiplicativo Decimal"])
 
-# Crear 4 columnas para los inputs matemáticos
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
@@ -29,15 +22,12 @@ with col1:
 with col2:
     a = st.number_input("Multiplicador (a):", value=5, step=1)
 with col3:
-    # Si no es Mixto, deshabilitamos 'c' y forzamos su valor a 0
     es_mixto = (metodo == "Mixto")
     c = st.number_input("Incremento (c):", value=3 if es_mixto else 0, step=1, disabled=not es_mixto)
-    if not es_mixto:
-        c = 0 
+    if not es_mixto: c = 0 
 with col4:
     m = st.number_input("Módulo (m):", value=16, min_value=1, step=1)
 
-# Botón para generar
 if st.button("Generar Tabla", type="primary"):
     vistos = set()
     resultados = []
@@ -45,7 +35,6 @@ if st.button("Generar Tabla", type="primary"):
     falla = False
     iteracion_falla = -1
     
-    # Bucle principal
     for n in range(m + 1):
         if xn in vistos:
             falla = True
@@ -53,7 +42,6 @@ if st.button("Generar Tabla", type="primary"):
             break
             
         vistos.add(xn)
-        
         xn_mas_1 = (a * xn + c) % m
         
         if metodo == "Mixto":
@@ -63,25 +51,21 @@ if st.button("Generar Tabla", type="primary"):
             
         ri = xn / m
         
-        # Guardar en formato de diccionario para Pandas
         resultados.append({
             "n": n,
             "Xn": xn,
             "Operación": operacion_str,
             "Xn+1": xn_mas_1,
-            "ri": round(ri, 5)
+            "ri": f"{ri:.5f}" 
         })
         
         xn = xn_mas_1
 
-    # Mostrar la tabla en la web
     st.markdown("### Tabla de Resultados")
     df = pd.DataFrame(resultados)
     
-    # st.dataframe muestra una tabla interactiva
     st.dataframe(df, use_container_width=True, hide_index=True)
 
-    # Mostrar métricas y mensajes de estado
     periodo_estimado = calcular_periodo_estimado(metodo, m)
     periodo_real = len(resultados)
     
